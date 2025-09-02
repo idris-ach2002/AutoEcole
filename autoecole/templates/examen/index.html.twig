@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des examens{% endblock %}
+
+{% block body %}
+    <h1>Liste des examens</h1>
+    <a href="{{ path('app_examen_new') }}" class="btn btn-primary mb-3">+ Ajouter un examen</a>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Lieu</th>
+            <th>Frais</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for examen in examens %}
+            <tr>
+                <td>{{ examen.typeExamen }}</td>
+                <td>{{ examen.datePassage|date('d/m/Y') }}</td>
+                <td>{{ examen.lieu }}</td>
+                <td>{{ examen.frais|number_format(2, ',', ' ') }} DZD</td>
+                <td>
+                    <a href="{{ path('app_examen_show', {'id': examen.id}) }}" class="btn btn-sm btn-info">👁️ Voir</a>
+                    <a href="{{ path('app_examen_edit', {'id': examen.id}) }}" class="btn btn-sm btn-warning">✏️ Modifier</a>
+                    {{ include('examen/_delete_form.html.twig') }}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4">Aucun examen trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

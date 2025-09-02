@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails inscription{% endblock %}
+
+{% block body %}
+    <h1>Détails de l'inscription</h1>
+
+    <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Candidat :</strong> {{ candidat_examen.candidat.prenom }} {{ candidat_examen.candidat.nom }}</li>
+        <li class="list-group-item"><strong>Email :</strong> {{ candidat_examen.candidat.email ?: 'N/A' }}</li>
+        <li class="list-group-item"><strong>Examen :</strong> {{ candidat_examen.examen.typeExamen|capitalize }} - {{ candidat_examen.examen.datePassage|date('d/m/Y H:i') }}</li>
+        <li class="list-group-item"><strong>Frais examen :</strong> {{ candidat_examen.examen.frais|number_format(2, ',', ' ') }} DZD</li>
+        <li class="list-group-item"><strong>Statut examen :</strong>
+            {{ candidat_examen.statut|capitalize }}
+            {% if candidat_examen.statut == 'payé' %}
+                <span class="badge bg-success">✅</span>
+            {% elseif candidat_examen.statut == 'réussi' %}
+                <span class="badge bg-primary">🏆</span>
+            {% elseif candidat_examen.statut == 'échoué' %}
+                <span class="badge bg-danger">❌</span>
+            {% else %}
+                <span class="badge bg-warning">⏳</span>
+            {% endif %}
+        </li>
+        <li class="list-group-item"><strong>Reste à payer :</strong> {{ candidat_examen.candidat.resteAPayer|number_format(2, ',', ' ') }} €
+            {% if candidat_examen.candidat.resteAPayer <= 0 %}
+                <span class="badge bg-success">Soldé</span>
+            {% else %}
+                <span class="badge bg-warning">En cours</span>
+            {% endif %}
+        </li>
+    </ul>
+
+    <a href="{{ path('app_candidat_examen_index') }}" class="btn btn-secondary">⬅️ Retour</a>
+{% endblock %}

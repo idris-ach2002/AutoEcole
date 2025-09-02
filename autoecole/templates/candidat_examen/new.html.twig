@@ -1,0 +1,7 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nouvelle inscription{% endblock %}
+{% block body %}
+    <h1>Inscrire un candidat à un examen</h1>
+    {{ include('candidat_examen/_form.html.twig', {'form': form, 'button_label': 'Créer'}) }}
+    <a href="{{ path('app_candidat_examen_index') }}" class="btn btn-secondary mt-2">⬅️ Retour</a>
+{% endblock %}

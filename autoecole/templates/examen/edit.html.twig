@@ -1,0 +1,7 @@
+{% extends 'base.html.twig' %}
+{% block title %}Modifier examen{% endblock %}
+{% block body %}
+    <h1>Modifier l'examen</h1>
+    {{ include('examen/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+    <a href="{{ path('app_examen_index') }}" class="btn btn-secondary mt-2">⬅️ Retour</a>
+{% endblock %}

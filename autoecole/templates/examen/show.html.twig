@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+{% block title %}Détails examen{% endblock %}
+{% block body %}
+    <h1>Détails de l'examen</h1>
+
+    <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Type :</strong> {{ examen.typeExamen|capitalize }}</li>
+        <li class="list-group-item"><strong>Date :</strong> {{ examen.datePassage|date('d/m/Y H:i') }}</li>
+        <li class="list-group-item"><strong>Lieu :</strong> {{ examen.lieu ?? 'Non défini' }}</li>
+        <li class="list-group-item"><strong>Frais :</strong> {{ examen.frais|number_format(2, ',', ' ') }} DZD</li>
+        <li class="list-group-item">
+            <strong>Candidats inscrits :</strong>
+            {% if examen.candidatExamens|length > 0 %}
+                <ul class="mt-2">
+                    {% for ce in examen.candidatExamens %}
+                        <li>
+                            {{ ce.candidat.prenom }} {{ ce.candidat.nom }} - Statut :
+                            {% if ce.statut == 'payé' %}
+                                <span class="badge bg-success">✅ Payé</span>
+                            {% elseif ce.statut == 'inscrit' %}
+                                <span class="badge bg-warning">⏳ Inscrit</span>
+                            {% elseif ce.statut == 'réussi' %}
+                                <span class="badge bg-primary">🏆 Réussi</span>
+                            {% elseif ce.statut == 'échoué' %}
+                                <span class="badge bg-danger">❌ Échoué</span>
+                            {% else %}
+                                <span class="badge bg-secondary">—</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                Aucun candidat inscrit
+            {% endif %}
+        </li>
+    </ul>
+
+    <a href="{{ path('app_examen_index') }}" class="btn btn-secondary mt-3">⬅️ Retour</a>
+{% endblock %}

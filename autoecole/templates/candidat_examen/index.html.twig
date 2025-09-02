@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscriptions aux examens{% endblock %}
+
+{% block body %}
+    <h1>Inscriptions aux examens</h1>
+    <a href="{{ path('app_candidat_examen_new') }}" class="btn btn-primary mb-3">+ Nouvelle inscription</a>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Candidat</th>
+            <th>Examen</th>
+            <th>Statut Examen</th>
+            <th>Reste à payer examen</th>
+            <th>Reste à payer permis</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for inscription in candidat_examens %}
+            <tr>
+                <td>{{ inscription.candidat.prenom }} {{ inscription.candidat.nom }}</td>
+                <td>{{ inscription.examen.typeExamen|capitalize }} - {{ inscription.examen.datePassage|date('d/m/Y') }}</td>
+                <td>
+                    {{ inscription.statut|capitalize }}
+                    {% if inscription.statut == 'payé' %}
+                        <span class="badge bg-success">✅</span>
+                    {% elseif inscription.statut == 'réussi' %}
+                        <span class="badge bg-primary">🏆</span>
+                    {% elseif inscription.statut == 'échoué' %}
+                        <span class="badge bg-danger">❌</span>
+                    {% else %}
+                        <span class="badge bg-warning">⏳</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ inscription.resteAPayer|default(0)|number_format(2, ',', ' ') }} DZD
+                    {% if inscription.resteAPayer|default(0) <= 0 %}
+                        <span class="badge bg-success">Payé</span>
+                    {% else %}
+                        <span class="badge bg-warning">En attente</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ inscription.candidat.resteAPayer|default(0)|number_format(2, ',', ' ') }} DZD
+                    {% if inscription.candidat.resteAPayer|default(0) <= 0 %}
+                        <span class="badge bg-success">Soldé</span>
+                    {% else %}
+                        <span class="badge bg-warning">En cours</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {# Voir #}
+                    <a href="{{ path('app_candidat_examen_show', {'id': inscription.id}) }}" class="btn btn-sm btn-info">👁️ Voir</a>
+
+                    {# Modifier #}
+                    <a href="{{ path('app_candidat_examen_edit', {'id': inscription.id}) }}" class="btn btn-sm btn-warning">✏️ Modifier</a>
+
+                    {# Supprimer #}
+                    {{ include('candidat_examen/_delete_form.html.twig', {inscription: inscription}) }}
+
+                    {# Paiement examen #}
+                    {% if inscription.resteAPayer|default(0) > 0 %}
+                        <form method="post" action="{{ path('app_candidat_examen_payer', {'id': inscription.id}) }}" style="display:inline-block;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('payer-examen' ~ inscription.id) }}">
+                            <input type="number" name="montant" class="form-control form-control-sm d-inline-block" style="width:80px;" min="0.01" step="0.01" required>
+                            <button class="btn btn-sm btn-success">💳 Payer frais examen</button>
+                        </form>
+                    {% endif %}
+
+                    {# Paiement permis #}
+                    {% if inscription.candidat.resteAPayer|default(0) > 0 %}
+                        <form method="post" action="{{ path('app_candidat_payer_permis', {'id': inscription.candidat.id}) }}" style="display:inline-block;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('payer-permis' ~ inscription.candidat.id) }}">
+                            <input type="number" name="montant" class="form-control form-control-sm d-inline-block" style="width:80px;" min="0.01" step="0.01" required>
+                            <button class="btn btn-sm btn-primary">💳 Payer permis</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6">Aucune inscription trouvée.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

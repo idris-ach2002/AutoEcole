@@ -1,0 +1,7 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nouvel examen{% endblock %}
+{% block body %}
+    <h1>Ajouter un examen</h1>
+    {{ include('examen/_form.html.twig') }}
+    <a href="{{ path('app_examen_index') }}" class="btn btn-secondary mt-2">⬅️ Retour</a>
+{% endblock %}

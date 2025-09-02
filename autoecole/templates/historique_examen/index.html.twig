@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+{% block title %}Historique des examens{% endblock %}
+
+{% block body %}
+    <h1>Historique des examens</h1>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <input type="text" name="nom" value="{{ nom }}" class="form-control" placeholder="Nom">
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="prenom" value="{{ prenom }}" class="form-control" placeholder="Prénom">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="dateDebut" value="{{ dateDebut }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="dateFin" value="{{ dateFin }}" class="form-control">
+        </div>
+        <div class="col-md-12">
+            <button class="btn btn-primary">Filtrer</button>
+            <a href="{{ path('app_historique_examens') }}" class="btn btn-secondary">Réinitialiser</a>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Candidat</th>
+            <th>Email / Téléphone</th>
+            <th>Examen</th>
+            <th>Date examen</th>
+            <th>Lieu</th>
+            <th>Frais</th>
+            <th>Reste à payer</th>
+            <th>Statut</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for ce in candidat_examens %}
+            <tr>
+                <td>{{ ce.candidat.prenom }} {{ ce.candidat.nom }}</td>
+                <td>{{ ce.candidat.email }} / {{ ce.candidat.telephone }}</td>
+                <td>{{ ce.examen.typeExamen|capitalize }}</td>
+                <td>{{ ce.examen.datePassage|date('d/m/Y') }}</td>
+                <td>{{ ce.examen.lieu ?? 'Non défini' }}</td>
+                <td>{{ ce.examen.frais|number_format(2, ',', ' ') }} DZD</td>
+                <td>{{ ce.resteAPayer|number_format(2, ',', ' ') }} DZD</td>
+                <td>
+                    {% if ce.statut == 'payé' %}
+                        <span class="badge bg-success">✅ Payé</span>
+                    {% elseif ce.statut == 'réussi' %}
+                        <span class="badge bg-primary">🏆 Réussi</span>
+                    {% elseif ce.statut == 'échoué' %}
+                        <span class="badge bg-danger">❌ Échoué</span>
+                    {% else %}
+                        <span class="badge bg-warning">⏳ Inscrit</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="8">Aucun résultat trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

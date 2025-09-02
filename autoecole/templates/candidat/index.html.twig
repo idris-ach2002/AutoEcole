@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des candidats{% endblock %}
+
+{% block body %}
+    <h1>Liste des candidats</h1>
+    <a href="{{ path('app_candidat_new') }}" class="btn btn-primary mb-3">+ Ajouter un candidat</a>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Prix permis</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for candidat in candidats %}
+            <tr>
+                <td>{{ candidat.nom }}</td>
+                <td>{{ candidat.prenom }}</td>
+                <td>{{ candidat.email }}</td>
+                <td>{{ candidat.telephone }}</td>
+                <td>{{ candidat.prixPermis }} DZD</td>
+                <td>
+                    <a href="{{ path('app_candidat_show', {'id': candidat.id}) }}" class="btn btn-sm btn-info">👁️ Voir</a>
+                    <a href="{{ path('app_candidat_edit', {'id': candidat.id}) }}" class="btn btn-sm btn-warning">✏️ Modifier</a>
+                    {{ include('candidat/_delete_form.html.twig') }}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6">Aucun candidat trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
