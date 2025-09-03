@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script universel pour installer PHP, Composer, Symfony CLI, PostgreSQL
-# et lancer un projet Symfony existant "autoecole"
-# Compatible avec Debian/Ubuntu, CentOS/Fedora, Arch, openSUSE
+# Script universel fiable pour installer PHP, Composer, Symfony CLI, PostgreSQL
+# et préparer un projet Symfony existant "autoecole"
+# Compatible Ubuntu/Debian, CentOS/Fedora, Arch Linux, openSUSE
 
 set -e
 
@@ -33,59 +33,64 @@ fi
 echo "Gestionnaire de paquets détecté : $PKG_MANAGER" | tee -a "$LOG_FILE"
 
 # -----------------------------
-# Fonctions d'installation
+# Installer un paquet (ignore l'erreur si non disponible)
 # -----------------------------
 install_package() {
     PACKAGE=$1
     case $PKG_MANAGER in
         apt)
             sudo apt update -y
-            sudo apt install -y $PACKAGE
+            sudo apt install -y "$PACKAGE" || echo "⚠️ $PACKAGE non disponible, passage"
             ;;
         yum)
-            sudo yum install -y $PACKAGE
+            sudo yum install -y "$PACKAGE" || echo "⚠️ $PACKAGE non disponible, passage"
             ;;
         dnf)
-            sudo dnf install -y $PACKAGE
+            sudo dnf install -y "$PACKAGE" || echo "⚠️ $PACKAGE non disponible, passage"
             ;;
         pacman)
-            sudo pacman -S --noconfirm $PACKAGE
+            sudo pacman -S --noconfirm "$PACKAGE" || echo "⚠️ $PACKAGE non disponible, passage"
             ;;
         zypper)
-            sudo zypper install -y $PACKAGE
+            sudo zypper install -y "$PACKAGE" || echo "⚠️ $PACKAGE non disponible, passage"
             ;;
     esac
 }
 
 # -----------------------------
-# Installer dépendances de base
+# Installer les dépendances de base
 # -----------------------------
 echo "=== Installation des dépendances de base ===" | tee -a "$LOG_FILE"
 if [ "$PKG_MANAGER" = "apt" ]; then
     install_package "software-properties-common ca-certificates lsb-release apt-transport-https wget unzip git curl gnupg"
-elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
-    install_package "wget unzip git curl gnupg2"
-elif [ "$PKG_MANAGER" = "pacman" ]; then
-    install_package "base-devel wget unzip git curl gnupg"
-elif [ "$PKG_MANAGER" = "zypper" ]; then
-    install_package "wget unzip git curl gpg2"
+else
+    install_package "wget unzip git curl gnupg"
 fi
 
 # -----------------------------
-# Installer PHP et extensions
+# Installer PHP (dernière version stable disponible)
 # -----------------------------
-echo "=== Installation de PHP et extensions essentielles ===" | tee -a "$LOG_FILE"
-PHP_EXTENSIONS=("cli" "fpm" "pgsql" "mysql" "sqlite3" "mbstring" "xml" "curl" "gd" "intl" "bcmath" "zip" "opcache" "readline")
+echo "=== Installation de PHP ===" | tee -a "$LOG_FILE"
+if [ "$PKG_MANAGER" = "apt" ]; then
+    sudo add-apt-repository -y ppa:ondrej/php || true
+    sudo apt update -y
+    install_package "php"
+elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
+    install_package "php"
+elif [ "$PKG_MANAGER" = "pacman" ]; then
+    install_package "php"
+elif [ "$PKG_MANAGER" = "zypper" ]; then
+    install_package "php"
+fi
 
+# -----------------------------
+# Installer les extensions PHP essentielles si elles ne sont pas déjà installées
+# -----------------------------
+PHP_EXTENSIONS=("pdo" "pdo_pgsql" "mbstring" "xml" "curl" "gd" "intl" "bcmath" "zip" "opcache" "readline")
 for ext in "${PHP_EXTENSIONS[@]}"; do
-    if [ "$PKG_MANAGER" = "apt" ]; then
+    if ! php -m | grep -q "$ext"; then
+        echo "Installation de l'extension PHP manquante : $ext" | tee -a "$LOG_FILE"
         install_package "php-$ext"
-    elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
-        install_package "php-$ext"
-    elif [ "$PKG_MANAGER" = "pacman" ]; then
-        install_package "php"
-    elif [ "$PKG_MANAGER" = "zypper" ]; then
-        install_package "php$ext"
     fi
 done
 
@@ -119,20 +124,7 @@ fi
 # Installer PostgreSQL
 # -----------------------------
 echo "=== Installation de PostgreSQL ===" | tee -a "$LOG_FILE"
-if [ "$PKG_MANAGER" = "apt" ]; then
-    install_package "postgresql postgresql-contrib"
-elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
-    install_package "postgresql-server postgresql-contrib"
-    sudo postgresql-setup --initdb
-elif [ "$PKG_MANAGER" = "pacman" ]; then
-    install_package "postgresql"
-    sudo -u postgres initdb --locale en_US.UTF-8 -D /var/lib/postgres/data
-elif [ "$PKG_MANAGER" = "zypper" ]; then
-    install_package "postgresql-server postgresql-contrib"
-    sudo systemctl enable postgresql
-    sudo systemctl start postgresql
-fi
-
+install_package "postgresql"
 sudo systemctl enable postgresql || true
 sudo systemctl start postgresql || true
 
@@ -140,7 +132,6 @@ sudo systemctl start postgresql || true
 DB_NAME="idrisdatabase"
 DB_USER="ai222829"
 DB_PASS="Idris2023#"
-
 sudo -i -u postgres psql <<EOF
 DO
 \$do\$
@@ -150,7 +141,6 @@ BEGIN
    END IF;
 END
 \$do\$;
-
 DO
 \$do\$
 BEGIN
@@ -159,7 +149,6 @@ BEGIN
    END IF;
 END
 \$do\$;
-
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
 EOF
 
@@ -168,11 +157,8 @@ EOF
 # -----------------------------
 echo "=== Préparation du projet Symfony ===" | tee -a "$LOG_FILE"
 cd "$PROJECT_DIR"
-
 composer install --no-interaction --prefer-dist >> "$LOG_FILE" 2>&1
-
 php bin/console doctrine:migrations:migrate --no-interaction >> "$LOG_FILE" 2>&1
-
 if [ -d "src/DataFixtures" ]; then
     php bin/console doctrine:fixtures:load --no-interaction >> "$LOG_FILE" 2>&1
 fi
