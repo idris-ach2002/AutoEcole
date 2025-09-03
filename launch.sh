@@ -151,25 +151,25 @@ DB_NAME="idrisdatabase"
 DB_USER="ai222829"
 DB_PASS="Idris2023#"
 
+# Création de l'utilisateur si inexistant
 sudo -i -u postgres psql <<EOF
 DO
-\$do\$
+\$\$
 BEGIN
    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DB_USER') THEN
       CREATE ROLE $DB_USER LOGIN PASSWORD '$DB_PASS';
    END IF;
 END
-\$do\$;
-DO
-\$do\$
-BEGIN
-   IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME') THEN
-      CREATE DATABASE $DB_NAME OWNER $DB_USER;
-   END IF;
-END
-\$do\$;
-GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
+\$\$;
 EOF
+
+# Création de la base (hors bloc DO)
+if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
+  sudo -u postgres createdb -O "$DB_USER" "$DB_NAME"
+fi
+
+# Droits sur la base
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
 
 # -----------------------------
 # Préparer le projet Symfony
