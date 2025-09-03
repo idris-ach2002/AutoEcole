@@ -62,35 +62,42 @@ install_package() {
 # -----------------------------
 echo "=== Installation des dépendances de base ===" | tee -a "$LOG_FILE"
 if [ "$PKG_MANAGER" = "apt" ]; then
-    install_package "software-properties-common ca-certificates lsb-release apt-transport-https wget unzip git curl gnupg"
+    BASIC_PKGS=(software-properties-common ca-certificates lsb-release apt-transport-https wget unzip git curl gnupg)
 else
-    install_package "wget unzip git curl gnupg"
+    BASIC_PKGS=(wget unzip git curl gnupg)
 fi
 
+for pkg in "${BASIC_PKGS[@]}"; do
+    install_package "$pkg"
+done
+
 # -----------------------------
-# Installer PHP (dernière version stable disponible)
+# Installer PHP
 # -----------------------------
 echo "=== Installation de PHP ===" | tee -a "$LOG_FILE"
 if [ "$PKG_MANAGER" = "apt" ]; then
     sudo add-apt-repository -y ppa:ondrej/php || true
     sudo apt update -y
     install_package "php"
-elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
-    install_package "php"
-elif [ "$PKG_MANAGER" = "pacman" ]; then
-    install_package "php"
-elif [ "$PKG_MANAGER" = "zypper" ]; then
+else
     install_package "php"
 fi
 
+PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+echo "Version PHP installée : $PHP_VER" | tee -a "$LOG_FILE"
+
 # -----------------------------
-# Installer les extensions PHP essentielles si elles ne sont pas déjà installées
+# Installer les extensions PHP essentielles
 # -----------------------------
-PHP_EXTENSIONS=("pdo" "pdo_pgsql" "mbstring" "xml" "curl" "gd" "intl" "bcmath" "zip" "opcache" "readline")
+PHP_EXTENSIONS=("cli" "fpm" "pgsql" "mysql" "sqlite3" "mbstring" "xml" "curl" "gd" "intl" "bcmath" "zip" "readline")
 for ext in "${PHP_EXTENSIONS[@]}"; do
     if ! php -m | grep -q "$ext"; then
         echo "Installation de l'extension PHP manquante : $ext" | tee -a "$LOG_FILE"
-        install_package "php-$ext"
+        if [ "$PKG_MANAGER" = "apt" ]; then
+            install_package "php${PHP_VER}-$ext"
+        else
+            install_package "php-$ext"
+        fi
     fi
 done
 
@@ -132,6 +139,7 @@ sudo systemctl start postgresql || true
 DB_NAME="idrisdatabase"
 DB_USER="ai222829"
 DB_PASS="Idris2023#"
+
 sudo -i -u postgres psql <<EOF
 DO
 \$do\$
