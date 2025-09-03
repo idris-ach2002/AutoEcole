@@ -137,7 +137,6 @@ fi
 
 echo "Symfony installé avec succès : $(symfony -v)"
 
-
 # -----------------------------
 # Installer PostgreSQL
 # -----------------------------
@@ -152,7 +151,7 @@ DB_USER="ai222829"
 DB_PASS="Idris2023#"
 
 # Création de l'utilisateur si inexistant
-sudo -i -u postgres psql <<EOF
+sudo -i -u postgres psql -d postgres <<EOF
 DO
 \$\$
 BEGIN
@@ -169,7 +168,7 @@ if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
 fi
 
 # Droits sur la base
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+sudo -u postgres psql -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
 
 # -----------------------------
 # Préparer le projet Symfony
