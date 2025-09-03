@@ -104,19 +104,22 @@ done
 # -----------------------------
 # Installer Composer
 # -----------------------------
-if ! command -v composer >/dev/null; then
-    echo "=== Installation de Composer ===" | tee -a "$LOG_FILE"
-    EXPECTED_CHECKSUM="$(wget -q -O - https://composer.github.io/installer.sig)"
-    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
-    if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
-        echo 'ERREUR : le checksum de Composer ne correspond pas.' | tee -a "$LOG_FILE"
-        rm composer-setup.php
-        exit 1
-    fi
-    php composer-setup.php --install-dir=/usr/local/bin --filename=composer >> "$LOG_FILE" 2>&1
+echo "=== Installation de Composer ==="
+EXPECTED_SIGNATURE="$(wget -q -O - https://composer.github.io/installer.sig)"
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+ACTUAL_SIGNATURE="$(php -r "echo hash_file('SHA384', 'composer-setup.php');")"
+
+if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
+    >&2 echo 'ERREUR: Signature Composer invalide'
     rm composer-setup.php
+    exit 1
 fi
+
+sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+sudo chown $USER:$USER /usr/local/bin/composer
+rm composer-setup.php
+
+echo "Composer installé avec succès : $(composer --version)"
 
 # -----------------------------
 # Installer Symfony CLI
