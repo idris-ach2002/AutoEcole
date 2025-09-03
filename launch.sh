@@ -124,11 +124,19 @@ echo "Composer installé avec succès : $(composer --version)"
 # -----------------------------
 # Installer Symfony CLI
 # -----------------------------
-if ! command -v symfony >/dev/null; then
-    echo "=== Installation de Symfony CLI ===" | tee -a "$LOG_FILE"
-    wget https://get.symfony.com/cli/installer -O - | bash
-    sudo mv ~/.symfony/bin/symfony /usr/local/bin/symfony
+echo "=== Installation de Symfony CLI ==="
+curl -sS https://get.symfony.com/cli/installer | bash
+
+# Nouveau chemin depuis la version récente
+if [ -f "$HOME/.symfony5/bin/symfony" ]; then
+    sudo mv "$HOME/.symfony5/bin/symfony" /usr/local/bin/symfony
+elif [ -f "$HOME/.symfony/bin/symfony" ]; then
+    # fallback si jamais future install rechange le chemin
+    sudo mv "$HOME/.symfony/bin/symfony" /usr/local/bin/symfony
 fi
+
+echo "Symfony installé avec succès : $(symfony -v)"
+
 
 # -----------------------------
 # Installer PostgreSQL
