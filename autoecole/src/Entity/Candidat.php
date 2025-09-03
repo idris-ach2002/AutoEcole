@@ -27,8 +27,17 @@ class Candidat
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $telephone = null;
 
-    #[ORM\Column(length: 150, unique: false, nullable: true)]
-    private ?string $email = null;
+    // Email facultatif
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $email = "non spécifié";
+
+    // Nouveau champ : lieu de naissance
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $lieuNaissance = null;
+
+    // Nouveau champ : groupe sanguin
+    #[ORM\Column(length: 5, nullable: true)]
+    private ?string $groupeSanguin = null;
 
     #[ORM\Column(type: "decimal", precision: 10, scale: 2)]
     private float $prixPermis;
@@ -42,74 +51,60 @@ class Candidat
     #[ORM\OneToMany(targetEntity: CandidatExamen::class, mappedBy: "candidat", cascade: ["persist", "remove"], orphanRemoval: true)]
     private Collection $candidatExamens;
 
-    public function __construct()
-    {
-        $this->candidatExamens = new ArrayCollection();
+    public function __construct() { $this->candidatExamens = new ArrayCollection();
         $this->resteAPayer = $this->prixPermis ?? 0;
     }
-
     public function getId(): ?int
-    {
-        return $this->id;
-    }
-
+    { return $this->id; }
     public function getNom(): string
-    {
-        return $this->nom;
-    }
-
+    { return $this->nom; }
     public function setNom(string $nom): self
-    {
-        $this->nom = $nom;
-        return $this;
-    }
-
+    { $this->nom = $nom; return $this; }
     public function getPrenom(): string
-    {
-        return $this->prenom;
-    }
-
+    { return $this->prenom; }
     public function setPrenom(string $prenom): self
-    {
-        $this->prenom = $prenom;
-        return $this;
-    }
-
+    { $this->prenom = $prenom; return $this; }
     public function getDateNaissance(): \DateTimeInterface
-    {
-        return $this->dateNaissance;
-    }
-
+    { return $this->dateNaissance; }
     public function setDateNaissance(\DateTimeInterface $date): self
-    {
-        $this->dateNaissance = $date;
-        return $this;
-    }
-
-
+    { $this->dateNaissance = $date; return $this; }
     public function getTelephone(): ?string
-    {
-        return $this->telephone;
-    }
-
+    { return $this->telephone; }
     public function setTelephone(?string $telephone): self
-    {
-        $this->telephone = $telephone;
-        return $this;
-    }
-
+    { $this->telephone = $telephone; return $this; }
 
     public function getEmail(): ?string
     {
-        return $this->email;
+        return $this->email ?? "non spécifié";
     }
 
     public function setEmail(?string $email): self
     {
-        $this->email = $email;
+        $this->email = $email ?: "non spécifié";
         return $this;
     }
 
+    public function getLieuNaissance(): ?string
+    {
+        return $this->lieuNaissance;
+    }
+
+    public function setLieuNaissance(?string $lieuNaissance): self
+    {
+        $this->lieuNaissance = $lieuNaissance;
+        return $this;
+    }
+
+    public function getGroupeSanguin(): ?string
+    {
+        return $this->groupeSanguin;
+    }
+
+    public function setGroupeSanguin(?string $groupeSanguin): self
+    {
+        $this->groupeSanguin = $groupeSanguin;
+        return $this;
+    }
 
     public function getPrixPermis(): float
     {

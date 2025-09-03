@@ -63,4 +63,15 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <div class="mt-3">
+        <a href="{{ path('app_historique_examens_export_csv', {
+            nom: nom, prenom: prenom, dateDebut: dateDebut, dateFin: dateFin
+        }) }}" class="btn btn-success">⬇️ Export CSV</a>
+
+        <a href="{{ path('app_historique_examens_export_pdf', {
+            nom: nom, prenom: prenom, dateDebut: dateDebut, dateFin: dateFin
+        }) }}" class="btn btn-danger">⬇️ Export PDF</a>
+    </div>
+
 {% endblock %}

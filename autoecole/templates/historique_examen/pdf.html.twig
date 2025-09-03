@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Historique des examens</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+<h2>Historique des examens</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Candidat</th>
+        <th>Email</th>
+        <th>Téléphone</th>
+        <th>Examen</th>
+        <th>Date</th>
+        <th>Lieu</th>
+        <th>Frais</th>
+        <th>Reste à payer</th>
+        <th>Statut</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for ce in candidat_examens %}
+        <tr>
+            <td>{{ ce.candidat.prenom }} {{ ce.candidat.nom }}</td>
+            <td>{{ ce.candidat.email }}</td>
+            <td>{{ ce.candidat.telephone }}</td>
+            <td>{{ ce.examen.typeExamen|capitalize }}</td>
+            <td>{{ ce.examen.datePassage|date('d/m/Y') }}</td>
+            <td>{{ ce.examen.lieu ?? 'Non défini' }}</td>
+            <td>{{ ce.examen.frais|number_format(2, ',', ' ') }} DZD</td>
+            <td>{{ ce.resteAPayer|number_format(2, ',', ' ') }} DZD</td>
+            <td>{{ ce.statut }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

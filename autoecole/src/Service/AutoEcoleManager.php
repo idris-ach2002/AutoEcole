@@ -20,12 +20,12 @@ class AutoEcoleManager
             return true; // Toujours le premier
         }
 
-        if ($typeExamen === 'créneau') {
+        if ($typeExamen === 'creneau') {
             return $this->aReussi($examens, 'code');
         }
 
         if ($typeExamen === 'conduite') {
-            return $this->aReussi($examens, 'créneau');
+            return $this->aReussi($examens, 'creneau');
         }
 
         return false;

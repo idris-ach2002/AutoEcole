@@ -1,12 +1,32 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}Détails candidat{% endblock %}
+
 {% block body %}
     <h1>{{ candidat.prenom }} {{ candidat.nom }}</h1>
     <ul class="list-group">
-        <li class="list-group-item"><strong>Email :</strong> {{ candidat.email }}</li>
-        <li class="list-group-item"><strong>Téléphone :</strong> {{ candidat.telephone }}</li>
-        <li class="list-group-item"><strong>Date de naissance :</strong> {{ candidat.dateNaissance|date('d/m/Y') }}</li>
-        <li class="list-group-item"><strong>Prix permis :</strong> {{ candidat.prixPermis }} DZD</li>
+        <li class="list-group-item">
+            <strong>Email :</strong> {{ candidat.email is not empty ? candidat.email : 'Non spécifié' }}
+        </li>
+        <li class="list-group-item">
+            <strong>Téléphone :</strong> {{ candidat.telephone is not empty ? candidat.telephone : 'Non spécifié' }}
+        </li>
+        <li class="list-group-item">
+            <strong>Date de naissance :</strong> {{ candidat.dateNaissance|date('d/m/Y') }}
+        </li>
+        <li class="list-group-item">
+            <strong>Lieu de naissance :</strong> {{ candidat.lieuNaissance is not empty ? candidat.lieuNaissance : 'Non spécifié' }}
+        </li>
+        <li class="list-group-item">
+            <strong>Groupe sanguin :</strong> {{ candidat.groupeSanguin is not empty ? candidat.groupeSanguin : 'Non spécifié' }}
+        </li>
+        <li class="list-group-item">
+            <strong>Prix permis :</strong> {{ candidat.prixPermis }} DZD
+        </li>
+        <li class="list-group-item">
+            <strong>Statut paiement :</strong> {{ candidat.statutPaiement|capitalize }}
+        </li>
     </ul>
+
     <a href="{{ path('app_candidat_index') }}" class="btn btn-secondary mt-3">⬅️ Retour</a>
 {% endblock %}
