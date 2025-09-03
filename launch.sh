@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Script final non-interactif pour installer la stack complète et lancer le projet Symfony "autoecole"
-# Tout est automatisé : PHP, Composer, Symfony CLI, PostgreSQL, migrations et fixtures
+# Script universel pour installer PHP, Composer, Symfony CLI, PostgreSQL
+# et lancer un projet Symfony existant "autoecole"
+# Compatible avec Debian/Ubuntu, CentOS/Fedora, Arch, openSUSE
 
 set -e
 
@@ -11,29 +12,88 @@ LOG_FILE="$BASE_DIR/install_project.log"
 
 echo "=== Début de l'installation complète ===" | tee "$LOG_FILE"
 
-# --- INSTALLATION DE LA STACK ---
-echo "=== INSTALLATION DE LA STACK COMPLETE ===" | tee -a "$LOG_FILE"
-bash "$BASE_DIR/install_full_stack.sh" >> "$LOG_FILE" 2>&1
+# -----------------------------
+# Détection du gestionnaire de paquets
+# -----------------------------
+if [ -f /etc/debian_version ]; then
+    PKG_MANAGER="apt"
+elif [ -f /etc/redhat-release ]; then
+    PKG_MANAGER="yum"
+elif command -v dnf >/dev/null; then
+    PKG_MANAGER="dnf"
+elif command -v pacman >/dev/null; then
+    PKG_MANAGER="pacman"
+elif command -v zypper >/dev/null; then
+    PKG_MANAGER="zypper"
+else
+    echo "Gestionnaire de paquets non supporté"
+    exit 1
+fi
 
-# --- PREPARATION DU PROJET SYMFONY ---
-echo "=== PREPARATION DU PROJET SYMFONY ===" | tee -a "$LOG_FILE"
-cd "$PROJECT_DIR"
+echo "Gestionnaire de paquets détecté : $PKG_MANAGER" | tee -a "$LOG_FILE"
 
-PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
-echo "PHP version détectée : $PHP_VERSION" | tee -a "$LOG_FILE"
+# -----------------------------
+# Fonctions d'installation
+# -----------------------------
+install_package() {
+    PACKAGE=$1
+    case $PKG_MANAGER in
+        apt)
+            sudo apt update -y
+            sudo apt install -y $PACKAGE
+            ;;
+        yum)
+            sudo yum install -y $PACKAGE
+            ;;
+        dnf)
+            sudo dnf install -y $PACKAGE
+            ;;
+        pacman)
+            sudo pacman -S --noconfirm $PACKAGE
+            ;;
+        zypper)
+            sudo zypper install -y $PACKAGE
+            ;;
+    esac
+}
 
-REQUIRED_EXTENSIONS=("pdo" "pdo_pgsql" "mbstring" "xml" "curl" "gd" "intl" "bcmath" "zip")
+# -----------------------------
+# Installer dépendances de base
+# -----------------------------
+echo "=== Installation des dépendances de base ===" | tee -a "$LOG_FILE"
+if [ "$PKG_MANAGER" = "apt" ]; then
+    install_package "software-properties-common ca-certificates lsb-release apt-transport-https wget unzip git curl gnupg"
+elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
+    install_package "wget unzip git curl gnupg2"
+elif [ "$PKG_MANAGER" = "pacman" ]; then
+    install_package "base-devel wget unzip git curl gnupg"
+elif [ "$PKG_MANAGER" = "zypper" ]; then
+    install_package "wget unzip git curl gpg2"
+fi
 
-for ext in "${REQUIRED_EXTENSIONS[@]}"; do
-    if ! php -m | grep -q "$ext"; then
-        echo "Installation de l'extension PHP manquante : $ext" | tee -a "$LOG_FILE"
-        sudo apt install -y "php${PHP_VERSION}-${ext}" >> "$LOG_FILE" 2>&1
+# -----------------------------
+# Installer PHP et extensions
+# -----------------------------
+echo "=== Installation de PHP et extensions essentielles ===" | tee -a "$LOG_FILE"
+PHP_EXTENSIONS=("cli" "fpm" "pgsql" "mysql" "sqlite3" "mbstring" "xml" "curl" "gd" "intl" "bcmath" "zip" "opcache" "readline")
+
+for ext in "${PHP_EXTENSIONS[@]}"; do
+    if [ "$PKG_MANAGER" = "apt" ]; then
+        install_package "php-$ext"
+    elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
+        install_package "php-$ext"
+    elif [ "$PKG_MANAGER" = "pacman" ]; then
+        install_package "php"
+    elif [ "$PKG_MANAGER" = "zypper" ]; then
+        install_package "php$ext"
     fi
 done
 
-# Composer
+# -----------------------------
+# Installer Composer
+# -----------------------------
 if ! command -v composer >/dev/null; then
-    echo "Installation de Composer globalement..." | tee -a "$LOG_FILE"
+    echo "=== Installation de Composer ===" | tee -a "$LOG_FILE"
     EXPECTED_CHECKSUM="$(wget -q -O - https://composer.github.io/installer.sig)"
     php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
     ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
@@ -46,27 +106,84 @@ if ! command -v composer >/dev/null; then
     rm composer-setup.php
 fi
 
-# Composer install
-echo "=== Installation des dépendances du projet ===" | tee -a "$LOG_FILE"
-composer install --no-interaction --prefer-dist >> "$LOG_FILE" 2>&1
-
-# Doctrine migrations
-echo "=== Exécution des migrations Doctrine ===" | tee -a "$LOG_FILE"
-php bin/console doctrine:migrations:migrate --no-interaction >> "$LOG_FILE" 2>&1
-
-# Fixtures
-if [ -d "src/DataFixtures" ]; then
-    echo "=== Chargement des fixtures ===" | tee -a "$LOG_FILE"
-    php bin/console doctrine:fixtures:load --no-interaction >> "$LOG_FILE" 2>&1
-else
-    echo "Aucune fixture trouvée." | tee -a "$LOG_FILE"
+# -----------------------------
+# Installer Symfony CLI
+# -----------------------------
+if ! command -v symfony >/dev/null; then
+    echo "=== Installation de Symfony CLI ===" | tee -a "$LOG_FILE"
+    wget https://get.symfony.com/cli/installer -O - | bash
+    sudo mv ~/.symfony/bin/symfony /usr/local/bin/symfony
 fi
 
-# Lancement du serveur Symfony
-echo "=== LANCEMENT DU SERVEUR SYMFONY ===" | tee -a "$LOG_FILE"
+# -----------------------------
+# Installer PostgreSQL
+# -----------------------------
+echo "=== Installation de PostgreSQL ===" | tee -a "$LOG_FILE"
+if [ "$PKG_MANAGER" = "apt" ]; then
+    install_package "postgresql postgresql-contrib"
+elif [ "$PKG_MANAGER" = "dnf" ] || [ "$PKG_MANAGER" = "yum" ]; then
+    install_package "postgresql-server postgresql-contrib"
+    sudo postgresql-setup --initdb
+elif [ "$PKG_MANAGER" = "pacman" ]; then
+    install_package "postgresql"
+    sudo -u postgres initdb --locale en_US.UTF-8 -D /var/lib/postgres/data
+elif [ "$PKG_MANAGER" = "zypper" ]; then
+    install_package "postgresql-server postgresql-contrib"
+    sudo systemctl enable postgresql
+    sudo systemctl start postgresql
+fi
+
+sudo systemctl enable postgresql || true
+sudo systemctl start postgresql || true
+
+# Créer la base et l'utilisateur PostgreSQL
+DB_NAME="idrisdatabase"
+DB_USER="ai222829"
+DB_PASS="Idris2023#"
+
+sudo -i -u postgres psql <<EOF
+DO
+\$do\$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DB_USER') THEN
+      CREATE ROLE $DB_USER LOGIN PASSWORD '$DB_PASS';
+   END IF;
+END
+\$do\$;
+
+DO
+\$do\$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME') THEN
+      CREATE DATABASE $DB_NAME OWNER $DB_USER;
+   END IF;
+END
+\$do\$;
+
+GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
+EOF
+
+# -----------------------------
+# Préparer le projet Symfony
+# -----------------------------
+echo "=== Préparation du projet Symfony ===" | tee -a "$LOG_FILE"
+cd "$PROJECT_DIR"
+
+composer install --no-interaction --prefer-dist >> "$LOG_FILE" 2>&1
+
+php bin/console doctrine:migrations:migrate --no-interaction >> "$LOG_FILE" 2>&1
+
+if [ -d "src/DataFixtures" ]; then
+    php bin/console doctrine:fixtures:load --no-interaction >> "$LOG_FILE" 2>&1
+fi
+
+# -----------------------------
+# Lancer le serveur Symfony
+# -----------------------------
+echo "=== Lancement du serveur Symfony ===" | tee -a "$LOG_FILE"
 symfony server:start >> "$LOG_FILE" 2>&1 &
 
-echo "=== INSTALLATION COMPLETE ===" | tee -a "$LOG_FILE"
-echo "Logs détaillés disponibles dans $LOG_FILE"
+echo "=== Installation complète terminée ===" | tee -a "$LOG_FILE"
+echo "Logs détaillés dans $LOG_FILE"
 echo "Votre projet Symfony 'autoecole' est prêt et le serveur est lancé."
 
