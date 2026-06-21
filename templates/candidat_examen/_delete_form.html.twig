@@ -1,0 +1,1 @@
+<form method="post" action="{{ path('app_candidat_examen_delete', {'id': candidat_examen.id}) }}" style="display:inline" data-confirm="Supprimer cette inscription ?"><input type="hidden" name="_token" value="{{ csrf_token('delete' ~ candidat_examen.id) }}"><button class="btn small danger">Supprimer</button></form>

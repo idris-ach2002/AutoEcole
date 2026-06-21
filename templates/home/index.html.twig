@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+{% block title %}Pilotage AutoÉcole{% endblock %}
+{% block body %}
+<section class="hero">
+    <div class="hero-card">
+        <p class="eyebrow">Centre de pilotage</p>
+        <h1>Gestion auto-école structurée, lisible et exploitable.</h1>
+        <p class="lead">Suivi des candidats, paiements, examens, alertes opérationnelles, exports et contrôles métier depuis une interface unique.</p>
+        <div class="actions">
+            <a class="btn primary" href="{{ path('app_candidat_new') }}">Créer un candidat</a>
+            <a class="btn" href="{{ path('app_examen_new') }}">Planifier un examen</a>
+            <a class="btn" href="{{ path('app_candidat_examen_new') }}">Inscrire un candidat</a>
+        </div>
+    </div>
+    <div class="card panel">
+        <p class="eyebrow">Alertes</p>
+        <h2>À traiter</h2>
+        <div class="timeline">
+            {% for candidat in paymentAlerts %}
+                <a class="timeline-item" href="{{ path('app_candidat_show', {id: candidat.id}) }}"><span class="timeline-dot pending"></span><span>{{ candidat.nomComplet }} - {{ candidat.resteAPayer|number_format(0, ',', ' ') }} DZD restants</span></a>
+            {% endfor %}
+            {% for inscription in resultAlerts %}
+                <a class="timeline-item" href="{{ path('app_candidat_examen_show', {id: inscription.id}) }}"><span class="timeline-dot fail"></span><span>Résultat à saisir : {{ inscription.candidat.nomComplet }} / {{ inscription.examen.typeLabel }}</span></a>
+            {% endfor %}
+            {% if paymentAlerts is empty and resultAlerts is empty %}<div class="timeline-item"><span class="timeline-dot ok"></span><span>Aucune alerte prioritaire.</span></div>{% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="grid grid-4" style="margin-top:20px">
+    <div class="metric-card"><strong>{{ candidateFinancials.total }}</strong><span>Candidats suivis</span></div>
+    <div class="metric-card"><strong>{{ candidateFinancials.encaisse|number_format(0, ',', ' ') }}</strong><span>DZD encaissés permis</span></div>
+    <div class="metric-card"><strong>{{ candidateFinancials.reste|number_format(0, ',', ' ') }}</strong><span>DZD restants permis</span></div>
+    <div class="metric-card"><strong>{{ examFinancials.reste|number_format(0, ',', ' ') }}</strong><span>DZD restants examens</span></div>
+</section>
+
+<section class="split" style="margin-top:20px">
+    <div class="card panel">
+        <p class="eyebrow">Pipeline examens</p>
+        <h2>Répartition des inscriptions</h2>
+        <div class="grid grid-4">
+            <div class="metric-card"><strong>{{ statusStats.inscrit }}</strong><span>Inscrits</span></div>
+            <div class="metric-card"><strong>{{ statusStats['payé'] }}</strong><span>Payés</span></div>
+            <div class="metric-card"><strong>{{ statusStats['réussi'] }}</strong><span>Réussis</span></div>
+            <div class="metric-card"><strong>{{ statusStats['échoué'] }}</strong><span>Échoués</span></div>
+        </div>
+    </div>
+    <div class="card panel">
+        <p class="eyebrow">Calendrier</p>
+        <h2>Prochaines sessions</h2>
+        <div class="timeline">
+            {% for examen in upcomingExams %}
+                <a class="timeline-item" href="{{ path('app_examen_show', {id: examen.id}) }}"><span class="timeline-dot pending"></span><span>{{ examen.datePassage|date('d/m/Y') }} - {{ examen.typeLabel }} - {{ examen.lieu ?: 'Lieu à définir' }}</span></a>
+            {% else %}
+                <div class="timeline-item"><span class="timeline-dot"></span><span>Aucune session planifiée.</span></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

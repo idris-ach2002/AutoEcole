@@ -1,0 +1,7 @@
+{% extends 'base.html.twig' %}
+{% block title %}Examen {{ examen.typeLabel }}{% endblock %}
+{% block body %}
+<div class="hero-card"><p class="eyebrow">Session examen</p><h1>{{ examen.typeLabel }}</h1><p class="lead">{{ examen.datePassage|date('d/m/Y') }} - {{ examen.lieu ?: 'Lieu à définir' }}</p><div class="actions"><a class="btn" href="{{ path('app_examen_index') }}">Retour</a><a class="btn warning" href="{{ path('app_examen_edit', {id: examen.id}) }}">Modifier</a><button class="btn" onclick="window.print()">Imprimer</button></div></div>
+<section class="grid grid-4" style="margin-top:18px"><div class="metric-card"><strong>{{ examen.frais|number_format(0, ',', ' ') }}</strong><span>DZD frais</span></div><div class="metric-card"><strong>{{ examen.inscritsCount }}</strong><span>Inscrits</span></div><div class="metric-card"><strong>{{ examen.past ? 'Oui' : 'Non' }}</strong><span>Session passée</span></div><div class="metric-card"><strong>{{ examen.statutExamen ? 'Oui' : 'Non' }}</strong><span>Payé à temps</span></div></section>
+<div class="table-card"><table><thead><tr><th>Candidat</th><th>Statut</th><th>Reste à payer</th></tr></thead><tbody>{% for ce in examen.candidatExamens %}<tr><td><a href="{{ path('app_candidat_show', {id: ce.candidat.id}) }}"><strong>{{ ce.candidat.nomComplet }}</strong></a></td><td><span class="badge">{{ ce.statutLabel }}</span></td><td>{{ ce.resteAPayer|number_format(0, ',', ' ') }} DZD</td></tr>{% else %}<tr><td colspan="3">Aucun candidat inscrit.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

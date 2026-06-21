@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% block title %}Candidats{% endblock %}
+{% block body %}
+<div class="hero-card">
+    <p class="eyebrow">Dossiers candidats</p>
+    <h1>Candidats</h1>
+    <p class="lead">Recherche, filtrage, solde permis, progression examen, exports et accès rapide aux dossiers.</p>
+    <div class="actions">
+        <a class="btn primary" href="{{ path('app_candidat_new') }}">+ Ajouter</a>
+        <a class="btn" href="{{ path('app_candidat_export_csv', app.request.query.all()) }}">Export CSV</a>
+        <a class="btn" href="{{ path('app_candidat_export_json') }}">Export JSON</a>
+    </div>
+</div>
+<div class="grid grid-4" style="margin-top:18px">
+    <div class="metric-card"><strong>{{ financials.total }}</strong><span>Candidats</span></div>
+    <div class="metric-card"><strong>{{ financials.totalContrats|number_format(0, ',', ' ') }}</strong><span>DZD contrats</span></div>
+    <div class="metric-card"><strong>{{ financials.encaisse|number_format(0, ',', ' ') }}</strong><span>DZD encaissés</span></div>
+    <div class="metric-card"><strong>{{ financials.reste|number_format(0, ',', ' ') }}</strong><span>DZD restants</span></div>
+</div>
+<form method="get" class="filter-card filters">
+    <div class="field"><label>Recherche</label><input name="q" value="{{ filters.q }}" placeholder="Nom, email, téléphone"></div>
+    <div class="field"><label>Paiement</label><select name="paymentStatus"><option value="">Tous</option><option value="en cours" {{ filters.paymentStatus == 'en cours' ? 'selected' }}>En cours</option><option value="soldé" {{ filters.paymentStatus == 'soldé' ? 'selected' }}>Soldé</option></select></div>
+    <div class="field"><label>Groupe sanguin</label><select name="bloodGroup"><option value="">Tous</option>{% for g in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}<option value="{{ g }}" {{ filters.bloodGroup == g ? 'selected' }}>{{ g }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Tri</label><select name="sort"><option value="nom" {{ filters.sort == 'nom' ? 'selected' }}>Nom</option><option value="reste" {{ filters.sort == 'reste' ? 'selected' }}>Reste</option><option value="prix" {{ filters.sort == 'prix' ? 'selected' }}>Prix</option><option value="age" {{ filters.sort == 'age' ? 'selected' }}>Age</option></select></div>
+    <button class="btn primary">Filtrer</button>
+</form>
+<div class="table-card">
+<table>
+<thead><tr><th>Identité</th><th>Contact</th><th>Paiement</th><th>Progression</th><th>Prochain examen</th><th>Actions</th></tr></thead>
+<tbody>
+{% for candidat in candidats %}
+<tr>
+    <td><strong>{{ candidat.nomComplet }}</strong><br><span class="badge info">{{ candidat.age ?? 'n/a' }} ans</span> {% if candidat.groupeSanguin %}<span class="badge">{{ candidat.groupeSanguin }}</span>{% endif %}</td>
+    <td>{{ candidat.email ?: 'Email manquant' }}<br><span style="color:var(--muted)">{{ candidat.telephone ?: 'Téléphone manquant' }}</span></td>
+    <td><span class="badge {{ candidat.isSolde ? 'success' : 'warning' }}">{{ candidat.statutPaiement }}</span><div class="progress"><span style="width:{{ candidat.progressionPaiement }}%"></span></div><small>{{ candidat.resteAPayer|number_format(0, ',', ' ') }} DZD restants</small></td>
+    <td><div class="progress"><span style="width:{{ manager.getProgressionPermis(candidat) }}%"></span></div><small>{{ manager.getProgressionPermis(candidat) }}%</small></td>
+    <td>{{ manager.labelType(manager.getNextExamType(candidat)) }}</td>
+    <td><div class="actions"><a class="btn small" href="{{ path('app_candidat_show', {id: candidat.id}) }}">Voir</a><a class="btn small warning" href="{{ path('app_candidat_edit', {id: candidat.id}) }}">Modifier</a>{{ include('candidat/_delete_form.html.twig') }}</div></td>
+</tr>
+{% else %}<tr><td colspan="6">Aucun candidat trouvé.</td></tr>{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

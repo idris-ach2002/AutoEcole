@@ -1,4 +1,0 @@
-<form method="post" action="{{ path('app_candidat_examen_delete', {'id': inscription.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette inscription ?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ inscription.id) }}">
-    <button class="btn btn-sm btn-danger">🗑️ Supprimer</button>
-</form>

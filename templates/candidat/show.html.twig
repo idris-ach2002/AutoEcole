@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dossier {{ candidat.nomComplet }}{% endblock %}
+{% block body %}
+<div class="hero-card">
+    <p class="eyebrow">Dossier candidat</p>
+    <h1>{{ candidat.nomComplet }}</h1>
+    <p class="lead">Vue synthétique : identité, contact, progression permis, paiements, examens et alertes qualité.</p>
+    <div class="actions"><a class="btn" href="{{ path('app_candidat_index') }}">Retour</a><a class="btn warning" href="{{ path('app_candidat_edit', {id: candidat.id}) }}">Modifier</a><button onclick="window.print()" class="btn">Imprimer</button></div>
+</div>
+<section class="grid grid-4" style="margin-top:18px">
+    <div class="metric-card"><strong>{{ candidat.age ?? 'n/a' }}</strong><span>Age</span></div>
+    <div class="metric-card"><strong>{{ dossier.progressionPermis }}%</strong><span>Progression examens</span></div>
+    <div class="metric-card"><strong>{{ candidat.progressionPaiement }}%</strong><span>Paiement permis</span></div>
+    <div class="metric-card"><strong>{{ candidat.resteAPayer|number_format(0, ',', ' ') }}</strong><span>DZD restants</span></div>
+</section>
+<section class="split" style="margin-top:18px">
+    <div class="card panel">
+        <p class="eyebrow">Identité et contact</p>
+        <p><strong>Email :</strong> {{ candidat.email ?: 'Non renseigné' }}</p>
+        <p><strong>Téléphone :</strong> {{ candidat.telephone ?: 'Non renseigné' }}</p>
+        <p><strong>Naissance :</strong> {{ candidat.dateNaissance ? candidat.dateNaissance|date('d/m/Y') : 'Non renseignée' }} à {{ candidat.lieuNaissance ?: 'non renseigné' }}</p>
+        <p><strong>Groupe sanguin :</strong> {{ candidat.groupeSanguin ?: 'Non renseigné' }}</p>
+        <hr style="border-color:var(--line)">
+        <form class="inline-form" method="post" action="{{ path('app_candidat_payer_permis', {id: candidat.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('payer-permis' ~ candidat.id) }}">
+            <input type="number" min="0.01" step="0.01" name="montant" placeholder="Montant">
+            <button class="btn success small">Paiement permis</button>
+        </form>
+    </div>
+    <div class="card panel">
+        <p class="eyebrow">Parcours permis</p>
+        <div class="timeline">
+            {% for type, statut in dossier.timeline %}
+                <div class="timeline-item"><span class="timeline-dot {{ statut == 'réussi' ? 'ok' : (statut == 'échoué' ? 'fail' : 'pending') }}"></span><span>{{ manager.labelType(type) }} - {{ statut }}</span></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<section class="card panel" style="margin-top:18px">
+    <p class="eyebrow">Alertes qualité</p>
+    {% for warning in dossier.warnings %}<div class="alert alert-warning">{{ warning }}</div>{% else %}<div class="alert alert-success">Dossier cohérent.</div>{% endfor %}
+</section>
+<section class="table-card">
+<table>
+<thead><tr><th>Examen</th><th>Date</th><th>Lieu</th><th>Statut</th><th>Reste</th></tr></thead>
+<tbody>{% for ce in candidat.candidatExamens %}<tr><td>{{ ce.examen.typeLabel }}</td><td>{{ ce.examen.datePassage|date('d/m/Y') }}</td><td>{{ ce.examen.lieu ?: '-' }}</td><td><span class="badge">{{ ce.statutLabel }}</span></td><td>{{ ce.resteAPayer|number_format(0, ',', ' ') }} DZD</td></tr>{% else %}<tr><td colspan="5">Aucun examen inscrit.</td></tr>{% endfor %}</tbody>
+</table>
+</section>
+{% endblock %}

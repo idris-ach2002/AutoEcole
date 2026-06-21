@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}AutoÉcole Manager{% endblock %}</title>
+    <link rel="stylesheet" href="/app.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="{{ path('app_home') }}">
+            <span class="brand-mark">A</span>
+            <span>AutoÉcole Manager <small>Symfony • Docker • PostgreSQL</small></span>
+        </a>
+        <nav class="nav">
+            <a href="{{ path('app_home') }}">Pilotage</a>
+            <a href="{{ path('app_candidat_index') }}">Candidats</a>
+            <a href="{{ path('app_examen_index') }}">Examens</a>
+            <a href="{{ path('app_candidat_examen_index') }}">Inscriptions</a>
+            <a href="{{ path('app_historique_examens') }}">Historique</a>
+            <a href="{{ path('app_healthz') }}">Health</a>
+        </nav>
+    </div>
+</header>
+<main class="app-shell">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+    {% block body %}{% endblock %}
+</main>
+<footer class="footer">AutoÉcole Manager - projet Symfony dockerisé, maintenable et orienté exploitation métier.</footer>
+</body>
+</html>

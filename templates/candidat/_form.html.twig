@@ -1,0 +1,17 @@
+<div class="card form-card">
+{{ form_start(form) }}
+    <div class="grid grid-2">
+        {{ form_row(form.nom) }}
+        {{ form_row(form.prenom) }}
+        {{ form_row(form.dateNaissance) }}
+        {{ form_row(form.lieuNaissance) }}
+        {{ form_row(form.telephone) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.groupeSanguin) }}
+        {{ form_row(form.statutPaiement) }}
+        {{ form_row(form.prixPermis) }}
+        {{ form_row(form.resteAPayer) }}
+    </div>
+    <div class="actions"><button class="btn primary">{{ button_label|default('Enregistrer') }}</button><a class="btn" href="{{ path('app_candidat_index') }}">Annuler</a></div>
+{{ form_end(form) }}
+</div>

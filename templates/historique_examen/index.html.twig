@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+{% block title %}Historique examens{% endblock %}
+{% block body %}
+<div class="hero-card"><p class="eyebrow">Historique et export</p><h1>Historique examens</h1><p class="lead">Filtrage chronologique, export CSV, JSON et PDF pour reporting administratif.</p></div>
+<form method="get" class="filter-card filters">
+  <div class="field"><label>Nom</label><input type="text" name="nom" value="{{ nom }}" placeholder="Nom"></div>
+  <div class="field"><label>Prénom</label><input type="text" name="prenom" value="{{ prenom }}" placeholder="Prénom"></div>
+  <div class="field"><label>Du</label><input type="date" name="dateDebut" value="{{ dateDebut }}"></div>
+  <div class="field"><label>Au</label><input type="date" name="dateFin" value="{{ dateFin }}"></div>
+  <button class="btn primary">Filtrer</button>
+</form>
+<div class="actions" style="margin-bottom:14px"><a class="btn success" href="{{ path('app_historique_examens_export_csv', {nom: nom, prenom: prenom, dateDebut: dateDebut, dateFin: dateFin}) }}">Export CSV</a><a class="btn" href="{{ path('app_historique_examens_export_json', {nom: nom, prenom: prenom, dateDebut: dateDebut, dateFin: dateFin}) }}">Export JSON</a><a class="btn danger" href="{{ path('app_historique_examens_export_pdf', {nom: nom, prenom: prenom, dateDebut: dateDebut, dateFin: dateFin}) }}">Export PDF</a><button class="btn" onclick="window.print()">Imprimer</button></div>
+<div class="table-card"><table><thead><tr><th>Candidat</th><th>Contact</th><th>Examen</th><th>Date</th><th>Lieu</th><th>Frais</th><th>Reste</th><th>Statut</th></tr></thead><tbody>{% for ce in candidat_examens %}<tr><td><strong>{{ ce.candidat.nomComplet }}</strong></td><td>{{ ce.candidat.email ?: '-' }}<br><small>{{ ce.candidat.telephone ?: '-' }}</small></td><td>{{ ce.examen.typeLabel }}</td><td>{{ ce.examen.datePassage|date('d/m/Y') }}</td><td>{{ ce.examen.lieu ?: '-' }}</td><td>{{ ce.examen.frais|number_format(0, ',', ' ') }} DZD</td><td>{{ ce.resteAPayer|number_format(0, ',', ' ') }} DZD</td><td><span class="badge">{{ ce.statutLabel }}</span></td></tr>{% else %}<tr><td colspan="8">Aucun résultat trouvé.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}
